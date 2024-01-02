@@ -4,6 +4,7 @@ import instance from '../../util/Instances';
 
 import { takeLatest, put, call } from 'redux-saga/effects';
 import { GEOJSON_API_SEARCH_URL_PARAMS, BLANK_MAP_DETAIL } from './constants';
+import { REACT_APP_GEOCODING_MAP_API_KEY } from '../../util/Common';
 
 export function* fetchAllEvents() {
   try {
@@ -33,6 +34,7 @@ export function* createNewEvent(action) {
       state: draftEvent.state,
       postalcode: draftEvent.zip,
       country: 'US', // default USA
+      apiKey: REACT_APP_GEOCODING_MAP_API_KEY,
     };
 
     try {

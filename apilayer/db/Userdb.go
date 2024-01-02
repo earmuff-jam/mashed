@@ -228,12 +228,13 @@ func upsertOauthToken(user string, draftUser *model.UserCredentials, tx *sql.Tx)
 
 	sqlStr := `
 	INSERT INTO auth.oauth
-	(token, user_id, expiration_time)
-	VALUES ($1, $2, $3)
+	(token, user_id, expiration_time, user_agent)
+	VALUES ($1, $2, $3, $4)
 	ON CONFLICT (user_id)
 	DO UPDATE SET
 		token = EXCLUDED.token,
-		expiration_time = EXCLUDED.expiration_time
+		expiration_time = EXCLUDED.expiration_time,
+		user_agent = EXCLUDED.user_agent
 	RETURNING id`
 
 	err := tx.QueryRow(
@@ -241,6 +242,7 @@ func upsertOauthToken(user string, draftUser *model.UserCredentials, tx *sql.Tx)
 		draftUser.PreBuiltToken,
 		draftUser.ID,
 		draftUser.ExpirationTime,
+		draftUser.UserAgent,
 	).Scan(&maskedID)
 
 	if err != nil {

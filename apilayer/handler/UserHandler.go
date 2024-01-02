@@ -110,6 +110,8 @@ func Signin(rw http.ResponseWriter, r *http.Request) {
 		json.NewEncoder(rw).Encode(err)
 		return
 	}
+
+	draftUser.UserAgent = r.UserAgent()
 	user := os.Getenv("CLIENT_USER")
 	if len(user) == 0 {
 		log.Printf("unable to retrieve user from env. Unable to sign in. Error - %+v", err)

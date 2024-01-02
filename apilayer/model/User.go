@@ -17,6 +17,7 @@ type UserCredentials struct {
 	ID                uuid.UUID `json:"id,omitempty"`
 	Email             string    `json:"email,omitempty"`
 	Role              string    `json:"role"`
+	UserAgent         string    `json:"user_agent,omitempty"`
 	EncryptedPassword string    `json:"password,omitempty"`
 	PreBuiltToken     string    `json:"pre_token,omitempty"`
 	LicenceKey        string    `json:"licence_key,omitempty"`
