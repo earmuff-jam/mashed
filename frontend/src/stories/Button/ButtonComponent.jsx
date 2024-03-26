@@ -17,6 +17,7 @@ const useStyles = makeStyles((theme) => ({
 const ButtonComponent = ({
   text,
   buttonVariant,
+  buttonStyles,
   showIcon,
   icon,
   disabled,
@@ -27,7 +28,7 @@ const ButtonComponent = ({
   const classes = useStyles();
   return (
     <Button
-      className={classNames({ [classes.disableHover]: disableRipple })}
+      className={classNames(buttonStyles, { [classes.disableHover]: disableRipple })}
       variant={buttonVariant}
       disabled={disabled}
       disableRipple={disableRipple}
@@ -48,11 +49,13 @@ ButtonComponent.defaultProps = {
   disabled: false,
   disableRipple: false,
   disableFocusRipple: false,
+  buttonStyles: '',
   onClick: () => {},
 };
 
 ButtonComponent.propTypes = {
   text: PropTypes.string,
+  buttonStyles: PropTypes.string,
   buttonVariant: PropTypes.string,
   showIcon: PropTypes.bool,
   icon: PropTypes.object,

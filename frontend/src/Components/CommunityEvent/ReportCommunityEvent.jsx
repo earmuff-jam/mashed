@@ -1,22 +1,15 @@
 import React, { useState } from 'react';
 import { makeStyles } from '@material-ui/core/styles';
-import {
-  Typography,
-  TextField,
-  Button,
-  FormControl,
-  FormControlLabel,
-  FormHelperText,
-  Box,
-  Checkbox,
-} from '@material-ui/core';
 import dayjs from 'dayjs';
 import { produce } from 'immer';
 import { enqueueSnackbar } from 'notistack';
 import { useDispatch, useSelector } from 'react-redux';
 import Autocomplete from '@material-ui/lab/Autocomplete';
 import { eventActions } from '../../Containers/Event/eventSlice';
+import ButtonComponent from '../../stories/Button/ButtonComponent';
+import TextComponent from '../../stories/TextComponent/TextComponent';
 import { BLANK_REPORT_FORM, BLANK_REPORT_FORM_ERROR, BLANK_REPORT_FORM_TOUCHED } from './constants';
+import { TextField, FormControl, FormControlLabel, FormHelperText, Box, Checkbox } from '@material-ui/core';
 
 const useStyles = makeStyles((theme) => ({
   container: {
@@ -160,15 +153,23 @@ const ReportCommunityEvent = ({ events, setDisplayMode }) => {
   };
 
   return (
-    <div className={classes.container}>
-      <Typography variant="caption" color="textSecondary" gutterBottom>
-        We take unusual activity seriously. Your report will be reviewed and appropriate action will be taken. Filing a
-        false report can have serious consequences, including legal liability for any damages incurred.
-      </Typography>
-      <Typography variant="caption" color="textSecondary">
-        Please provide details about the suspicious activity below.
-      </Typography>
-      <form onSubmit={handleSubmit}>
+    <Box className={classes.container}>
+      <TextComponent
+        value={`
+      We take unusual activity seriously. Your report will be reviewed and appropriate action will be taken. Filing a false report can have serious consequences, including legal liability for any damages incurred.`}
+        loading={false}
+        gutterBottom={true}
+        color={'textSecondary'}
+        variant="caption"
+      />
+      <TextComponent
+        value={`Please provide details about the suspicious activity below.`}
+        loading={false}
+        gutterBottom={true}
+        color={'textSecondary'}
+        variant="caption"
+      />
+      <form>
         <TextField
           fullWidth
           className={classes.textField}
@@ -239,18 +240,16 @@ const ReportCommunityEvent = ({ events, setDisplayMode }) => {
           {errors.reason && <FormHelperText>Checkbox must be selected</FormHelperText>}
         </FormControl>
         <Box>
-          <Button
-            className={classes.submitButton}
-            variant="contained"
-            color="primary"
-            type="submit"
+          <ButtonComponent
+            text={'Submit Report'}
+            onClick={handleSubmit}
+            buttonVariant={'text'}
             disabled={!isFormValid()}
-          >
-            Submit Report
-          </Button>
+            buttonStyles={classes.submitButton}
+          />
         </Box>
       </form>
-    </div>
+    </Box>
   );
 };
 

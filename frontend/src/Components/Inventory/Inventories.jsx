@@ -9,6 +9,8 @@ import Title from '../DialogComponent/Title';
 import AddItemDetail from '../ItemDetail/AddItemDetail';
 import List from '../DrawerListComponent/List';
 import dayjs from 'dayjs';
+import { useDispatch } from 'react-redux';
+import { eventActions } from '../../Containers/Event/eventSlice';
 
 const useStyles = makeStyles((theme) => ({
   rowContainer: {
@@ -34,30 +36,56 @@ const useStyles = makeStyles((theme) => ({
 
 const Inventories = () => {
   const classes = useStyles();
+  const dispatch = useDispatch();
   const [value, setValue] = useState(0);
   const [editMode, setEditMode] = useState(false);
 
-  const handleEditMode = () => setEditMode(!editMode);
+  const handleEditMode = () => {
+    setEditMode(!editMode);
+    dispatch(eventActions.getStorageLocations());
+  };
   const handleChange = (event, newValue) => {
     setValue(newValue);
   };
 
   const data = [
     {
-      bought_at: 'Walmart',
+      id: '5a271435-a055-45b9-9481-97b41e5a4d05',
+      name: 'Dog food',
+      description: 'Large breed dog food for tiku',
+      price: '89.99',
+      status: 'COUPONS', // [COUPONS, HIDDEN, DRAFT]
+      barcode: '',
+      sku: '',
+      quantity: 1,
+      location: 'Kitchen Pantry',
       created_at: '2024-03-17T15:55:02.701296Z',
       created_by: '71759d26-8128-4b30-abb3-b84f63439bf3',
       creator_name: 'Native Plants',
-      description: 'Large kitchen knife to slice meat for dog food',
-      eventID: '0a7fec04-c07f-4545-9ec5-80abdb48f31d',
-      id: '5a271435-a055-45b9-9481-97b41e5a4d05',
-      location: 'Kitchen Pantry',
-      name: 'Kitchen Knife',
-      quantity: 1,
-      storage_location_id: 'efc8e1f6-9462-492c-9ce6-821bdb591fea',
       updated_at: '2024-03-17T15:55:02.701296Z',
       updated_by: '71759d26-8128-4b30-abb3-b84f63439bf3',
       updater_name: 'Native Plants',
+      storage_location_id: 'efc8e1f6-9462-492c-9ce6-821bdb591fea',
+      bought_at: 'Walmart',
+    },
+    {
+      id: '5a271435-a055-45b9-9481-97b41e5a4d05',
+      name: 'Dog food',
+      description: 'Large breed dog food for tiku',
+      price: '89.99',
+      status: 'HIDDEN', // [COUPONS, HIDDEN, DRAFT]
+      barcode: '',
+      sku: '',
+      quantity: 1,
+      location: 'Kitchen Pantry',
+      created_at: '2024-03-17T15:55:02.701296Z',
+      created_by: '71759d26-8128-4b30-abb3-b84f63439bf3',
+      creator_name: 'Native Plants',
+      updated_at: '2024-03-17T15:55:02.701296Z',
+      updated_by: '71759d26-8128-4b30-abb3-b84f63439bf3',
+      updater_name: 'Native Plants',
+      storage_location_id: 'efc8e1f6-9462-492c-9ce6-821bdb591fea',
+      bought_at: 'Walmart',
     },
   ];
   const columns = Object.keys(data.length > 0 && data[0]); // for header purpose
@@ -79,7 +107,7 @@ const Inventories = () => {
     if (['created_at', 'updated_at'].includes(column)) {
       return dayjs(row[column]).fromNow();
     }
-    const inputColumns = ['bought_at', 'unit_price', 'quantity', 'name', 'description'];
+    const inputColumns = ['bought_at', 'price', 'status', 'quantity', 'name', 'description'];
     if (inputColumns.includes(column)) {
       return (
         <EasyEdit
@@ -106,9 +134,9 @@ const Inventories = () => {
         return (
           <Container maxWidth="lg">
             <List
-              tooltipTitle={'download inventory list'}
-              fileName={'Personal Inventory.xlsx'}
-              sheetName={'Inventory Sheet'}
+              tooltipTitle={'Download all items '}
+              fileName={'inventories.xlsx'}
+              sheetName={'All Inventories'}
               data={data}
               columns={columns}
               filteredData={filteredItems}
@@ -118,11 +146,50 @@ const Inventories = () => {
           </Container>
         );
       case 1:
-        return 1;
+        return (
+          <Container maxWidth="lg">
+            <List
+              tooltipTitle={'Download all items with coupons '}
+              fileName={'inventories.xlsx'}
+              sheetName={'Coupons'}
+              data={data.filter((v) => v.status === 'COUPONS')}
+              columns={columns}
+              filteredData={filteredItems}
+              columnHeaderFormatter={columnHeaderFormatter}
+              rowFormatter={rowFormatter}
+            />
+          </Container>
+        );
       case 2:
-        return 2;
+        return (
+          <Container maxWidth="lg">
+            <List
+              tooltipTitle={'Download all items with draft status '}
+              fileName={'inventories.xlsx'}
+              sheetName={'Draft Status'}
+              data={data.filter((v) => v.status === 'DRAFT')}
+              columns={columns}
+              filteredData={filteredItems}
+              columnHeaderFormatter={columnHeaderFormatter}
+              rowFormatter={rowFormatter}
+            />
+          </Container>
+        );
       case 3:
-        return 3;
+        return (
+          <Container maxWidth="lg">
+            <List
+              tooltipTitle={'Download all inventories with hidden status '}
+              fileName={'inventories.xlsx'}
+              sheetName={'Hidden Inventories'}
+              data={data.filter((v) => v.status === 'HIDDEN')}
+              columns={columns}
+              filteredData={filteredItems}
+              columnHeaderFormatter={columnHeaderFormatter}
+              rowFormatter={rowFormatter}
+            />
+          </Container>
+        );
       default:
         return null;
     }
@@ -144,7 +211,7 @@ const Inventories = () => {
       {editMode && (
         <Dialog open width={'md'} fullWidth={true}>
           <Title onClose={() => setEditMode(false)}>Add New Item</Title>
-          <AddItemDetail eventID={''} userID={'userDetail.userID'} setDisplayMode={setEditMode} />
+          <AddItemDetail eventID={''} setDisplayMode={setEditMode} />
         </Dialog>
       )}
       <Tabs value={value} onChange={handleChange} indicatorColor="primary" textColor="primary">

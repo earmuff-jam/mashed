@@ -57,15 +57,6 @@ func main() {
 
 	// routes below here are treated as they are secure routes
 	router.Handle("/api/v1/health", CustomRequestHandler(handler.GetEventHealthCheck)).Methods(http.MethodGet)
-
-	router.Handle("/api/v1/profile/{id}", CustomRequestHandler(handler.GetProfile)).Methods(http.MethodGet)
-	router.Handle("/api/v1/profile/{id}", CustomRequestHandler(handler.UpdateProfile)).Methods(http.MethodPut)
-	router.Handle("/api/v1/profile/{id}/username", CustomRequestHandler(handler.GetUsername)).Methods(http.MethodGet)
-	router.Handle("/api/v1/profile/{id}/updateAvatar", CustomRequestHandler(handler.UpdateProfileAvatar)).Methods(http.MethodPost)
-
-	router.Handle("/api/v1/profile/{id}/notifications", CustomRequestHandler(handler.GetAllNotifications)).Methods(http.MethodGet)
-	router.Handle("/api/v1/profile/{id}/notifications/{notificationID}", CustomRequestHandler(handler.UpdateSingleNotification)).Methods(http.MethodPut)
-
 	router.Handle("/api/v1/states", CustomRequestHandler(handler.GetAllStates)).Methods(http.MethodGet)
 	router.Handle("/api/v1/causes", CustomRequestHandler(handler.GetAllEventCauses)).Methods(http.MethodGet)
 	router.Handle("/api/v1/types", CustomRequestHandler(handler.GetAllProjectTypes)).Methods(http.MethodGet)
@@ -91,14 +82,23 @@ func main() {
 	router.Handle("/api/v1/volunteering", CustomRequestHandler(handler.CreateVolunteerHours)).Methods(http.MethodPost)
 	router.Handle("/api/v1/volunteering/{id}", CustomRequestHandler(handler.GetVolunteerHours)).Methods(http.MethodGet)
 
-	router.Handle("/api/v1/profile/recent/{id}", CustomRequestHandler(handler.GetUserRecentActivities)).Methods(http.MethodGet)
-	router.Handle("/api/v1/profile/highlights/{id}", CustomRequestHandler(handler.GetUserRecentHighlights)).Methods(http.MethodGet)
-	router.Handle("/api/v1/profile/volunteering/{id}", CustomRequestHandler(handler.GetUserVolunteerDetails)).Methods(http.MethodGet)
+	router.Handle("/api/v1/profile/{id}", CustomRequestHandler(handler.GetProfile)).Methods(http.MethodGet)
+	router.Handle("/api/v1/profile/{id}", CustomRequestHandler(handler.UpdateProfile)).Methods(http.MethodPut)
+	router.Handle("/api/v1/profile/{id}/username", CustomRequestHandler(handler.GetUsername)).Methods(http.MethodGet)
+	router.Handle("/api/v1/profile/{id}/updateAvatar", CustomRequestHandler(handler.UpdateProfileAvatar)).Methods(http.MethodPost)
 
-	router.Handle("/api/v1/profile/notes/{id}", CustomRequestHandler(handler.GetUserNotesDetails)).Methods(http.MethodGet)
-	router.Handle("/api/v1/profile/notes/{id}", CustomRequestHandler(handler.AddNewNote)).Methods(http.MethodPost)
-	router.Handle("/api/v1/profile/notes/{id}", CustomRequestHandler(handler.UpdateNote)).Methods(http.MethodPut)
-	router.Handle("/api/v1/profile/notes/{id}", CustomRequestHandler(handler.RemoveSelectedNote)).Methods(http.MethodDelete)
+	router.Handle("/api/v1/profile/{id}/notifications", CustomRequestHandler(handler.GetAllNotifications)).Methods(http.MethodGet)
+	router.Handle("/api/v1/profile/{id}/inventories", CustomRequestHandler(handler.GetAllInventories)).Methods(http.MethodGet)
+	router.Handle("/api/v1/profile/{id}/notifications/{notificationID}", CustomRequestHandler(handler.UpdateSingleNotification)).Methods(http.MethodPut)
+
+	router.Handle("/api/v1/profile/{id}/recent", CustomRequestHandler(handler.GetUserRecentActivities)).Methods(http.MethodGet)
+	router.Handle("/api/v1/profile/{id}/highlights", CustomRequestHandler(handler.GetUserRecentHighlights)).Methods(http.MethodGet)
+	router.Handle("/api/v1/profile/{id}/volunteering", CustomRequestHandler(handler.GetUserVolunteerDetails)).Methods(http.MethodGet)
+
+	router.Handle("/api/v1/profile/{id}/notes", CustomRequestHandler(handler.GetUserNotesDetails)).Methods(http.MethodGet)
+	router.Handle("/api/v1/profile/{id}/notes", CustomRequestHandler(handler.AddNewNote)).Methods(http.MethodPost)
+	router.Handle("/api/v1/profile/{id}/notes", CustomRequestHandler(handler.UpdateNote)).Methods(http.MethodPut)
+	router.Handle("/api/v1/profile/{id}/notes", CustomRequestHandler(handler.RemoveSelectedNote)).Methods(http.MethodDelete)
 
 	cors := handlers.CORS(
 		handlers.AllowedHeaders([]string{"Content-Type", "Authorization", "Authorization2"}),

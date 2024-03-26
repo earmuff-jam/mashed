@@ -21,10 +21,11 @@ const useStyles = makeStyles((theme) => ({
 
 const filter = createFilterOptions();
 
-const AddItemDetail = ({ eventID, userID, setDisplayMode }) => {
+const AddItemDetail = ({ eventID, setDisplayMode }) => {
   const classes = useStyles();
   const dispatch = useDispatch();
 
+  const userID = localStorage.getItem('userID');
   const { loading, storageLocations } = useSelector((state) => state.event);
 
   const [options, setOptions] = useState([]);
@@ -181,13 +182,11 @@ const AddItemDetail = ({ eventID, userID, setDisplayMode }) => {
 
 AddItemDetail.defaultProps = {
   eventID: '',
-  userID: '',
   setDisplayMode: () => {},
 };
 
 AddItemDetail.propTypes = {
   eventID: PropTypes.string,
-  userID: PropTypes.string,
   setDisplayMode: PropTypes.func,
 };
 

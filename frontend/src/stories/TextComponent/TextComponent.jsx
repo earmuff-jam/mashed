@@ -18,12 +18,15 @@ TextComponent.defaultProps = {
   loading: true,
   fullWidth: true,
   gutterBottom: true,
+  variant: 'text',
+  color: '',
   value: 'John Doe',
 };
 
 TextComponent.propTypes = {
   textStyle: PropTypes.string,
   gutterBottom: PropTypes.bool,
+  variant: PropTypes.string,
   loading: PropTypes.bool,
   fullWidth: PropTypes.bool,
   value: PropTypes.string,
