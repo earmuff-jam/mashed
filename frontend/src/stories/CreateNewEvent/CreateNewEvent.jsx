@@ -62,6 +62,7 @@ const CreateNewEvent = () => {
           variant={'outlined'}
           icon={<ViewListRounded />}
           label={'Inventory'}
+          disabled={true}
           onClick={() => navigate('/profile')}
         />
       </Box>
