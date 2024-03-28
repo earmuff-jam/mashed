@@ -31,7 +31,7 @@ const useStyles = makeStyles((theme) => ({
     display: 'flex',
     flexDirection: 'row',
   },
-  emptyGap: {
+  spacer: {
     flexGrow: 1,
   },
   heading: {
@@ -44,7 +44,7 @@ const useStyles = makeStyles((theme) => ({
   colorVariant: {
     backgroundColor: theme.palette.secondary.main,
   },
-  extraGap: {
+  gapVariant: {
     gap: theme.spacing(1),
   },
 }));
@@ -94,7 +94,6 @@ export const categorizeNotes = (notes) => {
     });
 
     acc[category].totalNotes++;
-
     return acc;
   }, {});
 
@@ -114,7 +113,6 @@ const NotesDetails = () => {
 
   const removeSelectedNote = (noteID) => {
     const formattedNotes = notes.filter((v) => v.noteID != noteID);
-
     const formattedDraftNotes = {
       noteID: noteID,
       updated_by: localStorage.getItem('userID'),
@@ -147,7 +145,7 @@ const NotesDetails = () => {
       {formattedNotes.map((v) => (
         <Accordion elevation={0} className={classes.colorVariant}>
           <AccordionSummary expandIcon={<ExpandMoreRounded />} aria-controls="panel1a-content" id="panel1a-header">
-            <Box className={[classes.rowContainer, classes.extraGap].join(' ')}>
+            <Box className={[classes.rowContainer, classes.gapVariant].join(' ')}>
               <TextComponent textStyle={classes.heading} value={v.category} loading={loading} />
               <Chip label={v.totalNotes} size="small" />
             </Box>
@@ -164,7 +162,7 @@ const NotesDetails = () => {
                       loading={loading}
                       textStyle={[classes.text, classes.textVariant].join(' ')}
                     />
-                    <Box className={classes.emptyGap}></Box>
+                    <Box className={classes.spacer}></Box>
                     <IconButton
                       onClick={() => {
                         removeSelectedNote(note.noteID);
@@ -191,7 +189,7 @@ const NotesDetails = () => {
                     <TextComponent textStyle={classes.heading} value={note.note_description} loading={loading} />
                     <Box className={classes.rowContainer}>
                       <TextComponent textStyle={classes.heading} value={note.updator} loading={loading} />
-                      <Box className={classes.emptyGap}></Box>
+                      <Box className={classes.spacer}></Box>
                       <TextComponent
                         textStyle={classes.heading}
                         value={dayjs(note.updated_at).fromNow()}

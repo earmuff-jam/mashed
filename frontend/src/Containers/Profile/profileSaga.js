@@ -18,8 +18,8 @@ export function* fetchExistingUserDetails() {
 export function* fetchRecentActivitiesList() {
   try {
     const USER_ID = localStorage.getItem('userID');
-    const response = yield call(instance.get, `${BASEURL}/recent/${USER_ID}`);
-    yield put(profileActions.getRecentActivitiesListSuccess(response.data));
+    const response = yield call(instance.get, `${BASEURL}/${USER_ID}/recent`);
+    yield put(profileActions.getRecentActivitiesListSuccess(response.data || []));
   } catch (e) {
     yield put(profileActions.getRecentActivitiesListFailure(e));
   }
@@ -28,7 +28,7 @@ export function* fetchRecentActivitiesList() {
 export function* fetchRecentActivitiesTrophyList() {
   try {
     const USER_ID = localStorage.getItem('userID');
-    const response = yield call(instance.get, `${BASEURL}/highlights/${USER_ID}`);
+    const response = yield call(instance.get, `${BASEURL}/${USER_ID}/highlights`);
     yield put(profileActions.getRecentActivitiesTrophyListSuccess(response.data));
   } catch (e) {
     yield put(profileActions.getRecentActivitiesTrophyListFailure(e));
@@ -83,7 +83,7 @@ export function* fetchUpdateProfileNotification(action) {
 export function* fetchVolunteeringDetails(action) {
   try {
     const { userID } = action.payload;
-    const response = yield call(instance.get, `${BASEURL}/volunteering/${userID}`);
+    const response = yield call(instance.get, `${BASEURL}/${userID}/volunteering`);
     yield put(profileActions.getVolunteeringDetailsSuccess(response.data));
   } catch (e) {
     yield put(profileActions.getVolunteeringDetailsFailure(e));
@@ -93,7 +93,7 @@ export function* fetchVolunteeringDetails(action) {
 export function* fetchUserNotes() {
   try {
     const USER_ID = localStorage.getItem('userID');
-    const response = yield call(instance.get, `${BASEURL}/notes/${USER_ID}`);
+    const response = yield call(instance.get, `${BASEURL}/${USER_ID}/notes`);
     yield put(profileActions.getUserNotesSuccess(response.data));
   } catch (e) {
     yield put(profileActions.getUserNotesFailure(e));
@@ -103,7 +103,7 @@ export function* fetchUserNotes() {
 export function* fetchAddNewNote(action) {
   try {
     const USER_ID = localStorage.getItem('userID');
-    const response = yield call(instance.post, `${BASEURL}/notes/${USER_ID}`, { ...action.payload });
+    const response = yield call(instance.post, `${BASEURL}/${USER_ID}/notes`, { ...action.payload });
     yield put(profileActions.addNewNoteSuccess(response.data));
   } catch (e) {
     yield put(profileActions.addNewNoteFailure(e));
@@ -113,7 +113,7 @@ export function* fetchAddNewNote(action) {
 export function* fetchUpdateExistingNote(action) {
   try {
     const USER_ID = localStorage.getItem('userID');
-    const response = yield call(instance.put, `${BASEURL}/notes/${USER_ID}`, { ...action.payload });
+    const response = yield call(instance.put, `${BASEURL}/${USER_ID}/notes`, { ...action.payload });
     yield put(profileActions.updateExistingNoteSuccess(response.data));
   } catch (e) {
     yield put(profileActions.updateExistingNoteFailure(e));
@@ -123,7 +123,7 @@ export function* fetchUpdateExistingNote(action) {
 export function* fetchRemoveSelectedNote(action) {
   try {
     const { noteID } = action.payload;
-    const response = yield call(instance.delete, `${BASEURL}/notes/${noteID}`);
+    const response = yield call(instance.delete, `${BASEURL}/${USER_ID}/notes`);
     yield put(profileActions.removeSelectedNoteSuccess(response.data));
   } catch (e) {
     yield put(profileActions.removeSelectedNoteFailure(e));

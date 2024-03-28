@@ -2,9 +2,7 @@ package db
 
 import (
 	"database/sql"
-	"log"
 	"mime/multipart"
-	"time"
 
 	"github.com/google/uuid"
 	"github.com/lib/pq"
@@ -229,7 +227,8 @@ FROM
 LEFT JOIN (
     SELECT 
         pv.project_id,
-        array_agg(DISTINCT skill) AS volunteer_skills
+        array_agg(DISTINCT skill) AS volunteer_skills,
+		pv.updated_by
     FROM 
 		community.projects_volunteer pv
     JOIN 
@@ -238,38 +237,41 @@ LEFT JOIN (
         pv.created_by = $1
         OR pv.updated_by = $1
     GROUP BY 
-        pv.project_id
+        pv.project_id, pv.updated_by
 ) ps ON p.id = ps.project_id
 LEFT JOIN (
     SELECT 
         project_id,
-        SUM(volunteer_hours) AS volunteer_hours
+        SUM(volunteer_hours) AS volunteer_hours,
+		updated_by
     FROM 
 		community.projects_volunteer
     WHERE 
         created_by = $1
         OR updated_by = $1
     GROUP BY 
-        project_id
+        project_id, updated_by
 ) pv ON p.id = pv.project_id
 LEFT JOIN (
     SELECT 
         project_id,
         array_agg(DISTINCT item_name) AS expense_item_names,
-        SUM(item_cost) AS expense_item_cost
+        SUM(item_cost) AS expense_item_cost,
+		updated_by
     FROM 
 		community.expenses
     WHERE 
         created_by = $1
         OR updated_by = $1
     GROUP BY 
-        project_id
+        project_id, updated_by
 ) e ON p.id = e.project_id
 LEFT JOIN community.community.profiles p2 ON p.updated_by = p2.id 
 WHERE 
     p.created_by = $1
     OR p.updated_by = $1
-    OR e.project_id IS NULL
+	OR e.updated_by = $1
+	OR pv.updated_by = $1
 ORDER BY p.updated_at DESC;
 `
 
@@ -337,175 +339,4 @@ func RetrieveUserActivityHighlights(user string, userID uuid.UUID) (*model.Recen
 	}
 
 	return &recentHighlight, nil
-}
-
-// RetrieveUserNotes ...
-func RetrieveUserNotes(user string, userID uuid.UUID) ([]model.Note, error) {
-	db, err := SetupDB(user)
-	if err != nil {
-		return nil, err
-	}
-	defer db.Close()
-
-	sqlStr := `SELECT 
-	n.id,
-	n.title, 
-	n.description, 
-	n.status, 
-	n.created_at, 
-	n.created_by, 
-	COALESCE(cp.full_name, cp.username, cp.email_address) AS creator_name, 
-	n.updated_at, 
-	n.updated_by, 
-	COALESCE(up.full_name, up.username, up.email_address)  AS updater_name
-	FROM community.notes n
-	LEFT JOIN community.profiles cp on cp.id  = n.created_by
-	LEFT JOIN community.profiles up on up.id  = n.updated_by
-	WHERE n.created_by = $1 or n.updated_by = $1`
-
-	rows, err := db.Query(sqlStr, userID)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-
-	var notes []model.Note
-	for rows.Next() {
-
-		var note model.Note
-		if err := rows.Scan(&note.ID, &note.Title, &note.Description, &note.Status, &note.CreatedAt, &note.CreatedBy, &note.Creator, &note.UpdatedAt, &note.UpdatedBy, &note.Updator); err != nil {
-			return nil, err
-		}
-		notes = append(notes, note)
-	}
-
-	if err := rows.Err(); err != nil {
-		return nil, err
-	}
-
-	return notes, nil
-}
-
-// AddNewNote ...
-func AddNewNote(user string, userID string, draftNote model.Note) (*model.Note, error) {
-	db, err := SetupDB(user)
-	if err != nil {
-		return nil, err
-	}
-	defer db.Close()
-
-	addSqlStr := "INSERT INTO community.notes (title, description, status, created_by, updated_by, sharable_groups) VALUES ($1, $2, $3, $4, $5, $6) RETURNING id;"
-	parsedCreatorID, err := uuid.Parse(draftNote.UpdatedBy)
-	if err != nil {
-		return nil, err
-	}
-
-	// for add scenarios
-	var draftNoteID string
-	draftNote.CreatedAt = time.Now()
-	draftNote.UpdatedAt = time.Now()
-
-	var sharableGroups = make([]uuid.UUID, 0)
-	sharableGroups = append(sharableGroups, parsedCreatorID)
-
-	tx, err := db.Begin()
-	if err != nil {
-		tx.Rollback()
-		return nil, err
-	}
-	err = tx.QueryRow(
-		addSqlStr,
-		draftNote.Title,
-		draftNote.Description,
-		draftNote.Status,
-		parsedCreatorID,
-		parsedCreatorID,
-		pq.Array(sharableGroups),
-	).Scan(&draftNoteID)
-
-	if err != nil {
-		// Rollback the transaction if there is an error
-		tx.Rollback()
-		return nil, err
-	}
-
-	// Commit the transaction if everything is successful
-	if err := tx.Commit(); err != nil {
-		return nil, err
-	}
-	return &draftNote, nil
-}
-
-// UpdateSelectedNote ...
-func UpdateSelectedNote(user string, userID string, draftNote model.Note) (*model.Note, error) {
-	db, err := SetupDB(user)
-	if err != nil {
-		return nil, err
-	}
-	defer db.Close()
-
-	updateSqlStr := "UPDATE community.notes SET title = $2, description = $3, status = $4, updated_by = $5, updated_at = $6 WHERE id = $1  RETURNING id, title, description, status, created_at, created_by, updated_at, updated_by;"
-
-	tx, err := db.Begin()
-	if err != nil {
-		tx.Rollback()
-		return nil, err
-	}
-
-	parsedCreatorID, err := uuid.Parse(draftNote.UpdatedBy)
-	if err != nil {
-		tx.Rollback()
-		return nil, err
-	}
-	var updatedNote model.Note
-
-	row := tx.QueryRow(updateSqlStr,
-		draftNote.ID,
-		draftNote.Title,
-		draftNote.Description,
-		draftNote.Status,
-		parsedCreatorID,
-		time.Now(),
-	)
-
-	err = row.Scan(
-		&updatedNote.ID,
-		&updatedNote.Title,
-		&updatedNote.Description,
-		&updatedNote.Status,
-		&updatedNote.CreatedAt,
-		&updatedNote.CreatedBy,
-		&updatedNote.UpdatedAt,
-		&updatedNote.UpdatedBy,
-	)
-
-	if err != nil {
-		// Rollback the transaction if there is an error
-		tx.Rollback()
-		return nil, err
-	}
-	// Commit the transaction if everything is successful
-	if err := tx.Commit(); err != nil {
-		return nil, err
-	}
-	return &updatedNote, nil
-
-}
-
-// RemoveSelectedNote ...
-func RemoveSelectedNote(user string, draftNoteID string) error {
-	db, err := SetupDB(user)
-	if err != nil {
-		return err
-	}
-	defer db.Close()
-
-	sqlStr := `DELETE FROM community.notes WHERE id=$1`
-	_, err = db.Exec(sqlStr, draftNoteID)
-	if err != nil {
-		log.Printf("unable to delete note ID %+v", draftNoteID)
-		return err
-	}
-	return nil
-
 }

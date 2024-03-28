@@ -116,7 +116,7 @@ const RecentActivity = ({ activity }) => {
             </TimelineItem>
           ) : null}
 
-          {activity?.expense_name?.length > 1 ? (
+          {activity?.expense_name?.length >= 1 ? (
             <TimelineItem className={classes.timelineItem}>
               <TimelineOppositeContent classes={{ root: classes.timelineRoot }} />
               <TimelineSeparator>

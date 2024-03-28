@@ -30,52 +30,43 @@ export const INVENTORY_TABS = [
 
   export const VIEW_PERSONAL_INVENTORY_LIST_HEADERS = {
     name: {
-      key: 'item_detail',
+      key: 'name',
       title: 'Item name',
       displayName: 'Item name',
-    },
-    location: {
-      key: 'location',
-      title: 'Storage Location',
-      displayName: 'Location',
-    },
-    item_detail: {
-      key: 'item_detail',
-      title: 'Item Detail',
-      displayName: 'Item Details',
-    },
-    quantity: {
-      key: 'quantity',
-      title: 'Quantity',
-      displayName: 'Item Quantity',
-      modifier: (title) => `${title}`,
-    },
-    unit_price: {
-      key: 'unit_price',
-      title: 'Unit Price',
-      displayName: 'Price Per Unit',
-      modifier: (title) => `${title}`,
-    },
-    bought_at: {
-      key: 'bought_at',
-      title: 'Bought At',
-      displayName: 'Purchase Location',
-      modifier: (title) => `${title}`,
     },
     description: {
       key: 'item_description',
       title: 'Item Description',
       displayName: 'Description',
     },
-    creator_name: {
-      key: 'creator_name',
-      title: 'Creator Name',
-      displayName: 'Creator',
+    price: {
+      key: 'price',
+      title: 'Cost',
+      displayName: 'Cost Per Unit',
+      modifier: (title) => `${title}`,
     },
-    updater_name: {
-      key: 'updater_name',
-      title: 'Updator Name',
-      displayName: 'Updater',
+    status: {
+      key: 'status',
+      title: 'Status',
+      displayName: 'Item Status',
+      modifier: (title) => `${title}`,
+    },
+    barcode: {
+      key: 'barcode',
+      title: 'Barcode',
+      displayName: 'Barcode',
+      modifier: (title) => `${title}`,
+    },
+    sku: {
+      key: 'SKU',
+      title: 'SKU',
+      displayName: 'SKU',
+    },
+    quantity: {
+      key: 'quantity',
+      title: 'Quantity',
+      displayName: 'Item Quantity',
+      modifier: (title) => `${title}`,
     },
     created_at: {
       key: 'created_at',
@@ -87,11 +78,30 @@ export const INVENTORY_TABS = [
       title: 'Updated At',
       displayName: 'Update Date',
     },
-    sharable_groups: {
-      key: 'sharable_groups',
-      title: 'Sharing with',
-      display: 'Sharing with',
-      modifier: (title) => `${title}`,
+    location: {
+      key: 'location',
+      title: 'Storage Location',
+      displayName: 'Location',
+    },
+    item_detail: {
+      key: 'item_detail',
+      title: 'Item Detail',
+      displayName: 'Item Details',
+    },
+    bought_at: {
+      key: 'bought_at',
+      title: 'Bought At',
+      displayName: 'Purchase Location',
+    },
+    creator_name: {
+      key: 'creator_name',
+      title: 'Creator Name',
+      displayName: 'Creator',
+    },
+    updater_name: {
+      key: 'updater_name',
+      title: 'Updator Name',
+      displayName: 'Updater',
     },
   };
   

@@ -55,7 +55,6 @@ const List = ({
   sheetName,
 }) => {
   const classes = useStyles();
-
   return (
     <>
       <Typography className={classes.headerText}>{title}</Typography>

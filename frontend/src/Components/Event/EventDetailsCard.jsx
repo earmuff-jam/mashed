@@ -247,7 +247,7 @@ const EventDetailsCard = ({
       {display === 'Add' && (
         <Dialog open width={'md'} fullWidth={true}>
           <Title onClose={() => setDisplay(0)}>Add New Item</Title>
-          <AddItemDetail eventID={eventID} userID={userDetail.userID} setDisplayMode={setDisplay} />
+          <AddItemDetail eventID={eventID} setDisplayMode={setDisplay} />
         </Dialog>
       )}
       {display === 'Report' && (
