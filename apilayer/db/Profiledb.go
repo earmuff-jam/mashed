@@ -227,7 +227,8 @@ FROM
 LEFT JOIN (
     SELECT 
         pv.project_id,
-        array_agg(DISTINCT skill) AS volunteer_skills
+        array_agg(DISTINCT skill) AS volunteer_skills,
+		pv.updated_by
     FROM 
 		community.projects_volunteer pv
     JOIN 
@@ -236,38 +237,41 @@ LEFT JOIN (
         pv.created_by = $1
         OR pv.updated_by = $1
     GROUP BY 
-        pv.project_id
+        pv.project_id, pv.updated_by
 ) ps ON p.id = ps.project_id
 LEFT JOIN (
     SELECT 
         project_id,
-        SUM(volunteer_hours) AS volunteer_hours
+        SUM(volunteer_hours) AS volunteer_hours,
+		updated_by
     FROM 
 		community.projects_volunteer
     WHERE 
         created_by = $1
         OR updated_by = $1
     GROUP BY 
-        project_id
+        project_id, updated_by
 ) pv ON p.id = pv.project_id
 LEFT JOIN (
     SELECT 
         project_id,
         array_agg(DISTINCT item_name) AS expense_item_names,
-        SUM(item_cost) AS expense_item_cost
+        SUM(item_cost) AS expense_item_cost,
+		updated_by
     FROM 
 		community.expenses
     WHERE 
         created_by = $1
         OR updated_by = $1
     GROUP BY 
-        project_id
+        project_id, updated_by
 ) e ON p.id = e.project_id
 LEFT JOIN community.community.profiles p2 ON p.updated_by = p2.id 
 WHERE 
     p.created_by = $1
     OR p.updated_by = $1
-    OR e.project_id IS NULL
+	OR e.updated_by = $1
+	OR pv.updated_by = $1
 ORDER BY p.updated_at DESC;
 `
 

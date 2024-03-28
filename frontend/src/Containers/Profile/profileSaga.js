@@ -19,7 +19,7 @@ export function* fetchRecentActivitiesList() {
   try {
     const USER_ID = localStorage.getItem('userID');
     const response = yield call(instance.get, `${BASEURL}/${USER_ID}/recent`);
-    yield put(profileActions.getRecentActivitiesListSuccess(response.data));
+    yield put(profileActions.getRecentActivitiesListSuccess(response.data || []));
   } catch (e) {
     yield put(profileActions.getRecentActivitiesListFailure(e));
   }
