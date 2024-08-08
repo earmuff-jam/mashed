@@ -279,15 +279,10 @@ func Test_UpdateSelectedInventory(t *testing.T) {
 	// TODO: write another test that checks two different inserts into storage locations as
 	// this only tests updating the found name.
 
-	draftUpdateInventoryWithSameStorage := model.InventoryItemToUpdate{
-		Column: "name",
-		Value:  "Alexandro Kitty Litter",
-		ID:     selectedInventory.ID,
-		UserID: prevUser.ID.String(),
-	}
+	selectedInventory.Name = "Alexandro Kitty Litter"
 
 	// Marshal the draftEvent into JSON bytes
-	requestBody, err = json.Marshal(draftUpdateInventoryWithSameStorage)
+	requestBody, err = json.Marshal(selectedInventory)
 	if err != nil {
 		t.Errorf("failed to marshal JSON: %v", err)
 	}

@@ -322,19 +322,6 @@ export const BLANK_INVENTORY_FORM = {
       },
     ],
   },
-  return_datetime: {
-    id: 'return_datetime',
-    value: '',
-    type: 'datetime',
-    isRequired: false,
-    errorMsg: '',
-    validators: [
-      {
-        validate: (value) => value < new Date().toISOString(),
-        message: 'Return datetime cannot be an eariler date or time',
-      },
-    ],
-  },
   max_weight: {
     id: 'max_weight',
     label: 'Max weight in kg',

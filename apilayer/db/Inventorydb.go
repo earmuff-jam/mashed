@@ -190,6 +190,7 @@ func retrieveSelectedInv(tx *sql.Tx, userID string, invID string) (*model.Invent
     inv.storage_location_id,
 	inv.is_returnable,
 	inv.return_location,
+	inv.return_datetime,
 	inv.max_weight,
 	inv.min_weight,
 	inv.max_height,
@@ -229,6 +230,7 @@ ORDER BY inv.updated_at DESC;
 		&inventory.StorageLocationID,
 		&inventory.IsReturnable,
 		&returnLocation,
+		&inventory.ReturnDateTime,
 		&maxWeight,
 		&minWeight,
 		&maxHeight,
@@ -445,6 +447,7 @@ func AddInventory(user string, userID string, draftInventory model.Inventory) (*
 		storage_location_id,
 		is_returnable,
 		return_location,
+		return_datetime,
 		max_weight,
 		min_weight,
 		max_height,
@@ -453,7 +456,7 @@ func AddInventory(user string, userID string, draftInventory model.Inventory) (*
 		created_at,
 		updated_by,
 		updated_at)
-VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20)
+VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21)
 RETURNING id;`
 
 	err = tx.QueryRow(
@@ -470,6 +473,7 @@ RETURNING id;`
 		parsedStorageLocationID,
 		draftInventory.IsReturnable,
 		draftInventory.ReturnLocation,
+		draftInventory.ReturnDateTime,
 		draftInventory.MaxWeight,
 		draftInventory.MinWeight,
 		draftInventory.MaxHeight,
@@ -505,6 +509,7 @@ RETURNING id;`
 		inv.storage_location_id,
 		inv.is_returnable,
 		inv.return_location,
+		inv.return_datetime,
 		inv.max_weight,
 		inv.min_weight,
 		inv.max_height,
@@ -526,6 +531,7 @@ RETURNING id;`
 	row := db.QueryRow(sqlGetUpdatedInventory, draftInventory.ID)
 
 	updatedInventory := model.Inventory{}
+
 	err = row.Scan(
 		&updatedInventory.ID,
 		&updatedInventory.Name,
@@ -609,11 +615,8 @@ func UpdateInventory(user string, userID string, draftInventory model.Inventory)
 
 	if !draftInventory.IsReturnable {
 		draftInventory.ReturnLocation = ""
+		draftInventory.ReturnDateTime = nil
 	}
-
-	currentTimestamp := time.Now()
-	draftInventory.CreatedAt = currentTimestamp
-	draftInventory.UpdatedAt = currentTimestamp
 
 	sqlStr = `UPDATE community.inventory inv
 	SET name = $2,
@@ -628,14 +631,15 @@ func UpdateInventory(user string, userID string, draftInventory model.Inventory)
 		storage_location_id = $11,
 		is_returnable = $12,
 		return_location = $13,
-		max_weight = $14,
-		min_weight = $15,
-		max_height = $16,
-		min_height = $17,
-		created_by = $18,
-		created_at = $19,
-		updated_by = $20,
-		updated_at = $21
+		return_datetime = $14,
+		max_weight = $15,
+		min_weight = $16,
+		max_height = $17,
+		min_height = $18,
+		created_by = $19,
+		created_at = $20,
+		updated_by = $21,
+		updated_at = $22
 	WHERE inv.id = $1
 	RETURNING id;`
 
@@ -654,6 +658,7 @@ func UpdateInventory(user string, userID string, draftInventory model.Inventory)
 		parsedStorageLocationID,
 		draftInventory.IsReturnable,
 		draftInventory.ReturnLocation,
+		draftInventory.ReturnDateTime,
 		draftInventory.MaxWeight,
 		draftInventory.MinWeight,
 		draftInventory.MaxHeight,
@@ -661,7 +666,7 @@ func UpdateInventory(user string, userID string, draftInventory model.Inventory)
 		parsedCreatedByUUID,
 		draftInventory.CreatedAt,
 		parsedCreatedByUUID,
-		draftInventory.UpdatedAt,
+		time.Now(),
 	).Scan(&draftInventory.ID)
 
 	if err != nil {
@@ -696,6 +701,7 @@ func UpdateInventory(user string, userID string, draftInventory model.Inventory)
 		inv.storage_location_id,
 		inv.is_returnable,
 		inv.return_location,
+		inv.return_datetime,
 		inv.max_weight,
 		inv.min_weight,
 		inv.max_height,
@@ -717,6 +723,7 @@ func UpdateInventory(user string, userID string, draftInventory model.Inventory)
 	row := tx.QueryRow(sqlGetUpdatedInventory, draftInventory.ID)
 
 	updatedInventory := model.Inventory{}
+
 	err = row.Scan(
 		&updatedInventory.ID,
 		&updatedInventory.Name,
@@ -731,6 +738,7 @@ func UpdateInventory(user string, userID string, draftInventory model.Inventory)
 		&updatedInventory.StorageLocationID,
 		&updatedInventory.IsReturnable,
 		&updatedInventory.ReturnLocation,
+		&updatedInventory.ReturnDateTime,
 		&updatedInventory.MaxWeight,
 		&updatedInventory.MinWeight,
 		&updatedInventory.MaxHeight,
@@ -742,6 +750,7 @@ func UpdateInventory(user string, userID string, draftInventory model.Inventory)
 		&updatedInventory.UpdatedBy,
 		&updatedInventory.UpdaterName,
 	)
+
 	if err != nil {
 		tx.Rollback()
 		return nil, err
