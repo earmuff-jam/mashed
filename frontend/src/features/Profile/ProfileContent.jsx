@@ -16,7 +16,7 @@ const ProfileContent = () => {
 
   const submit = (ev) => {
     ev.preventDefault();
-    const formattedData = Object.entries(formData).reduce((acc, [key, valueObj]) => {
+    const draftData = Object.entries(formData).reduce((acc, [key, valueObj]) => {
       if (['created_on', 'updated_on'].includes(key)) {
         acc[key] = valueObj;
       } else {
@@ -24,8 +24,8 @@ const ProfileContent = () => {
       }
       return acc;
     }, {});
-    formattedData['updated_on'] = dayjs();
-    dispatch(profileActions.updateProfileDetails({ formattedData }));
+    draftData['updated_on'] = dayjs();
+    dispatch(profileActions.updateProfileDetails({ draftData }));
   };
 
   const handleChange = (ev) => {
@@ -45,10 +45,6 @@ const ProfileContent = () => {
     };
     setFormData(updatedFormData);
   };
-
-  useEffect(() => {
-    dispatch(profileActions.getProfileDetails());
-  }, []);
 
   useEffect(() => {
     if (!loading) {

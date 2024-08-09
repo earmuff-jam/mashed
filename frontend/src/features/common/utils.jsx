@@ -11,10 +11,14 @@ import CryptoJS from 'crypto-js';
 export const RetrieveClientLocation = () => {
   const ciphertext = localStorage.getItem('client_location');
   if (ciphertext) {
-    const userID = localStorage.getItem('userID');
-    const bytes = CryptoJS.AES.decrypt(ciphertext, userID);
-    const decryptedData = JSON.parse(bytes.toString(CryptoJS.enc.Utf8));
-    return decryptedData;
+    try {
+      const userID = localStorage.getItem('userID');
+      const bytes = CryptoJS.AES.decrypt(ciphertext, userID);
+      const decryptedData = JSON.parse(bytes.toString(CryptoJS.enc.Utf8));
+      return decryptedData || {};
+    } catch (e) {
+      // eat exception
+    }
   }
   return null;
 };

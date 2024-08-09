@@ -83,6 +83,7 @@ const NotesDetails = ({ notes, loading, setEditMode, setSelectedNoteID }) => {
                     p: 1,
                     borderRadius: '0.2rem',
                     borderLeft: '0.175rem solid',
+                    backgroundColor: 'background.default',
                     borderColor: note.color ? `${note.color}` : 'primary.main',
                   }}
                 >

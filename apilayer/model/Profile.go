@@ -20,6 +20,8 @@ type Profile struct {
 	PhoneNumber  string    `json:"phone_number"`
 	AboutMe      string    `json:"about_me"`
 	OnlineStatus bool      `json:"online_status"`
+	Appearance   bool      `json:"appearance"`
+	GridView     bool      `json:"grid_view"`
 	CreatedAt    time.Time `json:"created_at,omitempty"`
 	CreatedBy    string    `json:"created_by,omitempty"`
 	Creator      string    `json:"creator,omitempty"`

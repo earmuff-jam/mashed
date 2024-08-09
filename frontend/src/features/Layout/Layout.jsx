@@ -5,21 +5,24 @@ import {
   CircularProgress,
   CssBaseline,
   IconButton,
+  Skeleton,
   Stack,
   ThemeProvider,
   Toolbar,
   Tooltip,
   Typography,
 } from '@mui/material';
-import { Suspense } from 'react';
+import { Suspense, useEffect } from 'react';
 import MenuActionBar from './MenuActionBar';
-import { lightTheme } from '../../util/Theme';
+import { darkTheme, lightTheme } from '../../util/Theme';
 import { LogoutRounded } from '@mui/icons-material';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { authActions } from '../../Containers/Auth/authSlice';
+import { profileActions } from '../Profile/profileSlice';
 
 const Layout = () => {
   const dispatch = useDispatch();
+  const { loading, profileDetails } = useSelector((state) => state.profile);
 
   const handleLogout = () => {
     dispatch(authActions.getLogout());
@@ -27,8 +30,16 @@ const Layout = () => {
     window.location.href = '/';
   };
 
+  useEffect(() => {
+    dispatch(profileActions.getProfileDetails());
+  }, []);
+
+  if (loading) {
+    return <Skeleton width="100%" height="100%" />;
+  }
+
   return (
-    <ThemeProvider theme={lightTheme}>
+    <ThemeProvider theme={profileDetails.appearance ? darkTheme : lightTheme}>
       <CssBaseline />
       <Suspense
         fallback={

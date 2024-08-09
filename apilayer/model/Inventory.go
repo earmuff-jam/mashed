@@ -9,29 +9,30 @@ import (
 //
 // Inventory is the selected row for each inventory
 type Inventory struct {
-	ID                string    `json:"id"`
-	Name              string    `json:"name"`
-	Description       string    `json:"description"`
-	Price             float64   `json:"price"`
-	Status            string    `json:"status"`
-	Barcode           string    `json:"barcode"`
-	SKU               string    `json:"sku"`
-	Quantity          int       `json:"quantity"`
-	Location          string    `json:"location"`
-	StorageLocationID string    `json:"storage_location_id"`
-	IsReturnable      bool      `json:"is_returnable"`
-	ReturnLocation    string    `json:"return_location"`
-	MaxWeight         string    `json:"max_weight"`
-	MinWeight         string    `json:"min_weight"`
-	MaxHeight         string    `json:"max_height"`
-	MinHeight         string    `json:"min_height"`
-	CreatedAt         time.Time `json:"created_at"`
-	CreatedBy         string    `json:"created_by"`
-	CreatorName       string    `json:"creator_name"`
-	UpdatedAt         time.Time `json:"updated_at"`
-	UpdatedBy         string    `json:"updated_by"`
-	UpdaterName       string    `json:"updater_name"`
-	BoughtAt          string    `json:"bought_at"`
+	ID                string     `json:"id"`
+	Name              string     `json:"name"`
+	Description       string     `json:"description"`
+	Price             float64    `json:"price"`
+	Status            string     `json:"status"`
+	Barcode           string     `json:"barcode"`
+	SKU               string     `json:"sku"`
+	Quantity          int        `json:"quantity"`
+	Location          string     `json:"location"`
+	StorageLocationID string     `json:"storage_location_id"`
+	IsReturnable      bool       `json:"is_returnable"`
+	ReturnLocation    string     `json:"return_location"`
+	ReturnDateTime    *time.Time `json:"return_datetime,omitempty"`
+	MaxWeight         string     `json:"max_weight"`
+	MinWeight         string     `json:"min_weight"`
+	MaxHeight         string     `json:"max_height"`
+	MinHeight         string     `json:"min_height"`
+	CreatedAt         time.Time  `json:"created_at"`
+	CreatedBy         string     `json:"created_by"`
+	CreatorName       string     `json:"creator_name"`
+	UpdatedAt         time.Time  `json:"updated_at"`
+	UpdatedBy         string     `json:"updated_by"`
+	UpdaterName       string     `json:"updater_name"`
+	BoughtAt          string     `json:"bought_at"`
 }
 
 // RawInventory ...

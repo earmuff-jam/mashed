@@ -1,34 +1,35 @@
 import { Box, Button, Checkbox, Divider, FormControlLabel, Skeleton, Stack, Typography } from '@mui/material';
 import { DarkModeRounded, GridViewRounded } from '@mui/icons-material';
 import { useEffect, useState } from 'react';
-// import dayjs from 'dayjs';
+import { useDispatch, useSelector } from 'react-redux';
+import { profileActions } from '../profileSlice';
+import dayjs from 'dayjs';
 
 const AppearanceSettings = () => {
-  const data = {};
-  const isLoading = false;
+  const dispatch = useDispatch();
+  const { loading, profileDetails } = useSelector((state) => state.profile);
+
   const [displayMode, setDisplayMode] = useState(false);
   const [inventoryLayout, setInventoryLayout] = useState(false); // false is list view
 
   const handleSubmit = () => {
-    // const draftFormattedData = {
-    //   // id: user?.id,
-    //   display_mode: displayMode,
-    //   inventory_layout: inventoryLayout,
-    //   // updated_by: user?.id,
-    //   updated_on: dayjs(),
-    // };
-    // upsertProfileConfigDetailsMutation.mutate(draftFormattedData);
-    // navigate('/');
+    const draftData = {
+      ...profileDetails,
+      appearance: displayMode,
+      grid_view: inventoryLayout,
+      updated_at: dayjs().toISOString(),
+    };
+    dispatch(profileActions.updateProfileDetails({ draftData }));
   };
 
   useEffect(() => {
-    if (!isLoading) {
-      setDisplayMode(data?.display_mode);
-      setInventoryLayout(data?.inventory_layout);
+    if (!loading) {
+      setDisplayMode(profileDetails.appearance ?? false);
+      setInventoryLayout(profileDetails.grid_view ?? false);
     }
-  }, [isLoading]);
+  }, [loading]);
 
-  if (isLoading) {
+  if (loading) {
     return <Skeleton variant="rounded" animation="wave" height="100%" width="100%" />;
   }
   return (

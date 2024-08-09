@@ -22,12 +22,14 @@ func FetchAllUserProfiles(user string) ([]model.Profile, error) {
             username,
             full_name,
             COALESCE(ENCODE(avatar_url::bytea, 'base64'), '') AS base64,
-            email_address,
-            phone_number,
-            goal,
-            about_me,
-            onlinestatus,
-            role
+			email_address,
+			phone_number,
+			about_me,
+			onlinestatus,
+			appearance,
+			grid_view,
+			role,
+			updated_at
         FROM community.profiles;
     `
 
@@ -40,35 +42,29 @@ func FetchAllUserProfiles(user string) ([]model.Profile, error) {
 	defer rows.Close()
 
 	for rows.Next() {
-		var profile model.Profile
+		var draftProfile model.Profile
+		var updated_at sql.NullTime
+		var userName, fullName, avatarUrl, emailAddress, phoneNumber, aboutMe, role sql.NullString
 
-		var username, fullName, emailAddress, phoneNumber, avatarUrl, goal, aboutMe, role sql.NullString
-
-		if err := rows.Scan(&profile.ID, &username, &fullName, &avatarUrl, &emailAddress, &phoneNumber, &goal, &aboutMe, &profile.OnlineStatus, &role); err != nil {
+		if err := rows.Scan(&draftProfile.ID, &userName, &fullName, &avatarUrl, &emailAddress, &phoneNumber, &aboutMe, &draftProfile.OnlineStatus, &draftProfile.Appearance, &draftProfile.GridView, &role, &updated_at); err != nil {
 			return nil, err
 		}
+		draftProfile.Username = userName.String
+		draftProfile.FullName = fullName.String
+		draftProfile.AvatarUrl = avatarUrl.String
+		draftProfile.EmailAddress = emailAddress.String
+		draftProfile.PhoneNumber = phoneNumber.String
+		draftProfile.AboutMe = aboutMe.String
+		draftProfile.UpdatedAt = updated_at.Time
 
-		if username.Valid {
-			profile.Username = username.String
-		}
-		if fullName.Valid {
-			profile.FullName = fullName.String
-		}
-		if avatarUrl.Valid {
-			profile.AvatarUrl = avatarUrl.String
-		}
-		if emailAddress.Valid {
-			profile.EmailAddress = emailAddress.String
-		}
-		if phoneNumber.Valid {
-			profile.PhoneNumber = phoneNumber.String
-		}
-		if aboutMe.Valid {
-			profile.AboutMe = aboutMe.String
-		}
+		profiles = append(profiles, draftProfile)
 
-		profiles = append(profiles, profile)
 	}
+
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+
 	if err := rows.Err(); err != nil {
 		return nil, err
 	}
@@ -95,13 +91,14 @@ func FetchUserProfile(user string, userID string) (*model.Profile, error) {
 			END AS base64,
 			email_address,
 			phone_number,
-			goal,
 			about_me,
 			onlinestatus,
+			appearance,
+			grid_view,
 			role,
 			updated_at
 		FROM community.profiles
-		WHERE id=$1
+		WHERE id=$1;
 	`
 
 	var draftProfile model.Profile
@@ -112,9 +109,7 @@ func FetchUserProfile(user string, userID string) (*model.Profile, error) {
 	var avatarUrl sql.NullString
 	var emailAddress sql.NullString
 	var phoneNumber sql.NullString
-	var goal sql.NullString
 	var aboutMe sql.NullString
-	var onlineStatus sql.NullBool
 	var role sql.NullString
 	var updated_at sql.NullTime
 
@@ -125,7 +120,7 @@ func FetchUserProfile(user string, userID string) (*model.Profile, error) {
 	defer rows.Close()
 
 	for rows.Next() {
-		if err := rows.Scan(&profileID, &userName, &fullName, &avatarUrl, &emailAddress, &phoneNumber, &goal, &aboutMe, &onlineStatus, &role, &updated_at); err != nil {
+		if err := rows.Scan(&profileID, &userName, &fullName, &avatarUrl, &emailAddress, &phoneNumber, &aboutMe, &draftProfile.OnlineStatus, &draftProfile.Appearance, &draftProfile.GridView, &role, &updated_at); err != nil {
 			return nil, err
 		}
 		draftProfile.ID, _ = uuid.Parse(profileID.String)
@@ -135,7 +130,6 @@ func FetchUserProfile(user string, userID string) (*model.Profile, error) {
 		draftProfile.EmailAddress = emailAddress.String
 		draftProfile.PhoneNumber = phoneNumber.String
 		draftProfile.AboutMe = aboutMe.String
-		draftProfile.OnlineStatus = onlineStatus.Bool
 		draftProfile.UpdatedAt = updated_at.Time
 	}
 	if err := rows.Err(); err != nil {
@@ -159,15 +153,19 @@ func UpdateUserProfile(user string, userID string, draftProfile model.Profile) (
 		return nil, err
 	}
 
-	sqlStr := `
-		UPDATE community.profiles 
-		SET username=$2, full_name=$3, email_address=$4, phone_number=$5, about_me=$6, onlinestatus=$7
+	sqlStr := `UPDATE community.profiles SET
+		username=$2,
+		full_name=$3,
+		email_address=$4,
+		phone_number=$5,
+		about_me=$6,
+		onlinestatus=$7,
+		appearance=$8,
+		grid_view=$9
 		WHERE id=$1
-		RETURNING id, username, full_name, avatar_url, email_address, phone_number, about_me, onlinestatus
-	`
+		RETURNING id, username, full_name, avatar_url, email_address, phone_number, about_me, onlinestatus, appearance, grid_view;`
 
 	var updatedProfile model.Profile
-
 	var avatarUrl sql.NullString // Assuming avatar_url is a string column, not bytea
 
 	row := tx.QueryRow(sqlStr,
@@ -178,6 +176,8 @@ func UpdateUserProfile(user string, userID string, draftProfile model.Profile) (
 		draftProfile.PhoneNumber,
 		draftProfile.AboutMe,
 		draftProfile.OnlineStatus,
+		draftProfile.Appearance,
+		draftProfile.GridView,
 	)
 
 	err = row.Scan(
@@ -189,6 +189,8 @@ func UpdateUserProfile(user string, userID string, draftProfile model.Profile) (
 		&updatedProfile.PhoneNumber,
 		&updatedProfile.AboutMe,
 		&updatedProfile.OnlineStatus,
+		&updatedProfile.Appearance,
+		&updatedProfile.GridView,
 	)
 
 	if err != nil {

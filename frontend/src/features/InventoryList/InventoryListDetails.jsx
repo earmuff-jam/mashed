@@ -1,5 +1,17 @@
 import React, { useEffect, useState } from 'react';
-import { Autocomplete, Dialog, DialogTitle, IconButton, Slide, Stack, TextField, Typography } from '@mui/material';
+import {
+  Autocomplete,
+  Dialog,
+  DialogTitle,
+  FormControlLabel,
+  FormGroup,
+  IconButton,
+  Slide,
+  Stack,
+  Switch,
+  TextField,
+  Typography,
+} from '@mui/material';
 import {
   CheckRounded,
   CircleRounded,
@@ -35,7 +47,7 @@ const MODAL_STATE = {
 
 const InventoryListDetails = ({ hideActionMenu = false }) => {
   const navigate = useNavigate();
-  const { loading, inventories } = useSelector((state) => state.profile);
+  const { loading, inventories } = useSelector((state) => state.inventory);
 
   const [options, setOptions] = useState([]);
   const [inputColumn, setInputColumn] = useState('');
@@ -48,7 +60,6 @@ const InventoryListDetails = ({ hideActionMenu = false }) => {
   const [idToDelete, setIdToDelete] = useState(-1);
   const [modalState, setModalState] = useState(MODAL_STATE.NONE);
 
-  const handleViewMode = (value) => setGridMode(value);
   const handleCloseModal = () => setModalState(MODAL_STATE.NONE);
   // const handleAddCategory = () => setModalState(MODAL_STATE.ASSIGN_CATEGORY);
   // const handleAddInventory = () => setModalState(MODAL_STATE.ASSIGN_MAINTENANCE_PLAN);
@@ -195,15 +206,27 @@ const InventoryListDetails = ({ hideActionMenu = false }) => {
 
   return (
     <Stack flexGrow="1">
-      <HeaderWithButton
-        title="Assets"
-        primaryButtonTextLabel="Grid"
-        primaryStartIcon={<GridViewRounded />}
-        handleClickPrimaryButton={() => handleViewMode(true)}
-        secondaryButtonTextLabel="List"
-        secondaryStartIcon={<ViewListRounded />}
-        handleClickSecondaryButton={() => handleViewMode(false)}
-      />
+      <Stack direction="row" justifyContent="space-between">
+        <HeaderWithButton title="Assets" />
+        <FormGroup>
+          <FormControlLabel
+            control={<Switch defaultChecked size="small" />}
+            sx={{
+              alignItems: 'unset',
+            }}
+            label={
+              gridMode ? (
+                <GridViewRounded color="primary" fontSize="small" />
+              ) : (
+                <ViewListRounded color="primary" fontSize="small" />
+              )
+            }
+            labelPlacement="end"
+            onClick={() => setGridMode(!gridMode)}
+          />
+        </FormGroup>
+      </Stack>
+
       <Autocomplete
         sx={{ maxWidth: '20rem', mb: 1 }}
         id="inventory-items-autocomplete"

@@ -15,7 +15,6 @@ export function* fetchAllEvents() {
   }
 }
 
-
 export function* createNewEvent(action) {
   try {
     const { draftEvent } = action.payload;

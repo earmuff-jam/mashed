@@ -1,4 +1,3 @@
-
 -- File: 0006_create_profiles_table_community.up.sql
 -- Description: Create the users profile table and grant permissions on the table.
 
@@ -10,11 +9,12 @@ CREATE TABLE profiles
     updated_at    TIMESTAMP WITH TIME ZONE                                       NOT NULL DEFAULT NOW(),
     username      VARCHAR(50)                                                    NULL,
     full_name     VARCHAR(200)                                                   NULL,
-    avatar_url    BYTEA                                                   NULL,
+    avatar_url    BYTEA                                                          NULL,
     email_address VARCHAR(250)                                                   NOT NULL UNIQUE,
     phone_number  VARCHAR(250)                                                   NULL,
-    goal          VARCHAR(250)                                                   NULL,
     about_me      VARCHAR(250)                                                   NULL,
+    appearance    BOOLEAN                                                                 DEFAULT FALSE,
+    grid_view     BOOLEAN                                                                 DEFAULT FALSE,
     onlineStatus  BOOLEAN                                                                 DEFAULT FALSE,
     role          VARCHAR(10)                                                             DEFAULT 'USER'
         CONSTRAINT username_length CHECK (char_length(username) >= 3)

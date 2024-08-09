@@ -71,7 +71,7 @@ VALUES ('4 pounds of kitty litter',
         (SELECT id FROM community.profiles p LIMIT 1),
         ARRAY [(SELECT id FROM community.profiles p LIMIT 1)::UUID]);
 
-
+-- return with a null datetime --
 INSERT INTO community.inventory (name, description, price, status, barcode, sku, quantity, bought_at, location,
                                  storage_location_id, is_returnable, return_location, max_weight, min_weight,
                                  max_height, min_height, created_by, updated_by, sharable_groups)

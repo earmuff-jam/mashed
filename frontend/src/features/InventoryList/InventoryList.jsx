@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import InventoryListDetails from './InventoryListDetails';
 import { useDispatch } from 'react-redux';
-import { profileActions } from '../Profile/profileSlice';
+import { inventoryActions } from './inventorySlice';
 import { RetrieveClientLocation } from '../common/utils';
 
 export default function InventoryList() {
@@ -11,7 +11,7 @@ export default function InventoryList() {
   console.debug(location); // todo remove this later
 
   useEffect(() => {
-    dispatch(profileActions.getAllInventoriesForUser());
+    dispatch(inventoryActions.getAllInventoriesForUser());
     const clientLocationCoordinates = RetrieveClientLocation();
     setLocation(clientLocationCoordinates);
   }, []);

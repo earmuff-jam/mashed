@@ -17,6 +17,7 @@ CREATE TABLE IF NOT EXISTS community.inventory
     storage_location_id                                                                                             UUID REFERENCES storage_locations (id) ON UPDATE CASCADE ON DELETE CASCADE,
     is_returnable         BOOLEAN                  NOT NULL                                         DEFAULT false,
     return_location       VARCHAR(200)             NULL,
+    return_datetime       TIMESTAMP WITH TIME ZONE NULL,
     max_weight            VARCHAR(10)              NULL,
     min_weight            VARCHAR(10)              NULL,
     max_height            VARCHAR(10)              NULL,

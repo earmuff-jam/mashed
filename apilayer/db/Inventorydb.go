@@ -2,7 +2,6 @@ package db
 
 import (
 	"database/sql"
-	"errors"
 	"log"
 	"time"
 
@@ -186,39 +185,31 @@ func retrieveSelectedInv(tx *sql.Tx, userID string, invID string) (*model.Invent
     inv.barcode,
     inv.sku,
     inv.quantity,
-    inv.bought_at,
+	inv.bought_at,
     inv.location,
-    inv.is_transfer_allocated,
-    p.title AS associated_event_title,
     inv.storage_location_id,
-    inv.is_returnable,
-    inv.return_location,
-    inv.max_weight,
-    inv.min_weight,
-    inv.max_height,
-    inv.min_height,
+	inv.is_returnable,
+	inv.return_location,
+	inv.return_datetime,
+	inv.max_weight,
+	inv.min_weight,
+	inv.max_height,
+	inv.min_height,
     inv.created_by,
     COALESCE(cp.username, cp.full_name, cp.email_address) AS creator_name,
     inv.created_at,
     inv.updated_by,
     COALESCE(up.username, up.full_name, up.email_address) AS updater_name,
     inv.updated_at
-FROM
-    community.inventory inv
-LEFT JOIN community.projects p ON inv.associated_event_id = p.id
+FROM community.inventory inv
 LEFT JOIN community.profiles cp ON inv.created_by = cp.id
 LEFT JOIN community.profiles up ON inv.updated_by = up.id
-WHERE
-   inv.created_by = $1
-AND inv.id = $2
-ORDER BY
-   inv.updated_at DESC;
+WHERE $1::UUID = ANY(inv.sharable_groups) AND inv.id = $2
+ORDER BY inv.updated_at DESC;
 	`
-
 	row := tx.QueryRow(sqlStr, userID, invID)
 
 	var inventory model.Inventory
-
 	var returnLocation sql.NullString
 	var maxWeight sql.NullString
 	var minWeight sql.NullString
@@ -239,6 +230,7 @@ ORDER BY
 		&inventory.StorageLocationID,
 		&inventory.IsReturnable,
 		&returnLocation,
+		&inventory.ReturnDateTime,
 		&maxWeight,
 		&minWeight,
 		&maxHeight,
@@ -253,9 +245,9 @@ ORDER BY
 
 	if err != nil {
 		if err == sql.ErrNoRows {
-			return nil, nil // No result found, return nil
+			return nil, err
 		}
-		return nil, err // An actual error occurred
+		return nil, err
 	}
 
 	if returnLocation.Valid {
@@ -455,6 +447,7 @@ func AddInventory(user string, userID string, draftInventory model.Inventory) (*
 		storage_location_id,
 		is_returnable,
 		return_location,
+		return_datetime,
 		max_weight,
 		min_weight,
 		max_height,
@@ -463,7 +456,7 @@ func AddInventory(user string, userID string, draftInventory model.Inventory) (*
 		created_at,
 		updated_by,
 		updated_at)
-VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20)
+VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21)
 RETURNING id;`
 
 	err = tx.QueryRow(
@@ -480,6 +473,7 @@ RETURNING id;`
 		parsedStorageLocationID,
 		draftInventory.IsReturnable,
 		draftInventory.ReturnLocation,
+		draftInventory.ReturnDateTime,
 		draftInventory.MaxWeight,
 		draftInventory.MinWeight,
 		draftInventory.MaxHeight,
@@ -515,6 +509,7 @@ RETURNING id;`
 		inv.storage_location_id,
 		inv.is_returnable,
 		inv.return_location,
+		inv.return_datetime,
 		inv.max_weight,
 		inv.min_weight,
 		inv.max_height,
@@ -536,6 +531,7 @@ RETURNING id;`
 	row := db.QueryRow(sqlGetUpdatedInventory, draftInventory.ID)
 
 	updatedInventory := model.Inventory{}
+
 	err = row.Scan(
 		&updatedInventory.ID,
 		&updatedInventory.Name,
@@ -569,51 +565,118 @@ RETURNING id;`
 }
 
 // UpdateInventory ...
-func UpdateInventory(user string, userID string, draftInventory model.InventoryItemToUpdate) (*model.Inventory, error) {
+func UpdateInventory(user string, userID string, draftInventory model.Inventory) (*model.Inventory, error) {
 
 	db, err := SetupDB(user)
 	if err != nil {
+		log.Printf("unable to start the db. error: %+v", err)
 		return nil, err
 	}
 	defer db.Close()
 
 	tx, err := db.Begin()
 	if err != nil {
+		log.Printf("unable to start tx. error: %+v", err)
 		return nil, err
 	}
 
-	parsedInventoryID, err := uuid.Parse(draftInventory.ID)
+	// if UUID is not present, add new storage location
+	parsedStorageLocationID, err := uuid.Parse(draftInventory.Location)
 	if err != nil {
+		emptyLocationID := ""
+		err := addNewStorageLocation(user, draftInventory.Location, draftInventory.CreatedBy, &emptyLocationID)
+		if err != nil {
+			tx.Rollback()
+			return nil, err
+		}
+		parsedStorageLocationID, err = uuid.Parse(emptyLocationID)
+		if err != nil {
+			tx.Rollback()
+			return nil, err
+		}
+		draftInventory.StorageLocationID = emptyLocationID
+	}
+
+	// if UUID is present, retrieve selected storage location
+	sqlStr := `SELECT location FROM community.storage_locations sl WHERE sl.id=$1;`
+	err = tx.QueryRow(sqlStr, parsedStorageLocationID).Scan(&draftInventory.Location)
+
+	if err != nil {
+		log.Printf("unable to retrieve selected location from storage location id. error: %+v", err)
+		tx.Rollback()
+		return nil, err
+	}
+	parsedCreatedByUUID, err := uuid.Parse(draftInventory.CreatedBy)
+	if err != nil {
+		log.Printf("unable to parse creator userID. error: %+v", err)
 		tx.Rollback()
 		return nil, err
 	}
 
-	parsedUserID, err := uuid.Parse(draftInventory.UserID)
-	if err != nil {
-		tx.Rollback()
-		return nil, err
+	if !draftInventory.IsReturnable {
+		draftInventory.ReturnLocation = ""
+		draftInventory.ReturnDateTime = nil
 	}
 
-	columnToUpdate := draftInventory.Column
+	sqlStr = `UPDATE community.inventory inv
+	SET name = $2,
+		description = $3,
+		price = $4,
+		status = $5,
+		barcode = $6,
+		sku = $7,
+		quantity = $8,
+		bought_at = $9,
+		location = $10,
+		storage_location_id = $11,
+		is_returnable = $12,
+		return_location = $13,
+		return_datetime = $14,
+		max_weight = $15,
+		min_weight = $16,
+		max_height = $17,
+		min_height = $18,
+		created_by = $19,
+		created_at = $20,
+		updated_by = $21,
+		updated_at = $22
+	WHERE inv.id = $1
+	RETURNING id;`
 
-	sqlStr := `
-        UPDATE community.inventory
-        SET ` + columnToUpdate + ` = $1,
-            updated_by = $2,
-            updated_at = now()
-        WHERE id = $3
-        RETURNING id`
+	err = tx.QueryRow(
+		sqlStr,
+		draftInventory.ID,
+		draftInventory.Name,
+		draftInventory.Description,
+		draftInventory.Price,
+		draftInventory.Status,
+		draftInventory.Barcode,
+		draftInventory.SKU,
+		draftInventory.Quantity,
+		draftInventory.BoughtAt,
+		draftInventory.Location,
+		parsedStorageLocationID,
+		draftInventory.IsReturnable,
+		draftInventory.ReturnLocation,
+		draftInventory.ReturnDateTime,
+		draftInventory.MaxWeight,
+		draftInventory.MinWeight,
+		draftInventory.MaxHeight,
+		draftInventory.MinHeight,
+		parsedCreatedByUUID,
+		draftInventory.CreatedAt,
+		parsedCreatedByUUID,
+		time.Now(),
+	).Scan(&draftInventory.ID)
 
-	var updatedInventoryID uuid.UUID
-	err = tx.QueryRow(sqlStr, draftInventory.Value, parsedUserID, parsedInventoryID).Scan(&updatedInventoryID)
 	if err != nil {
+		log.Printf("unable to update selected inventory. error: %+v", err)
 		tx.Rollback()
 		return nil, err
 	}
 
 	if err := tx.Commit(); err != nil {
-		tx.Rollback()
-		return nil, errors.New("commit failed: " + err.Error())
+		return nil, err
 	}
 
 	// new tx to bring fresh values
@@ -638,6 +701,7 @@ func UpdateInventory(user string, userID string, draftInventory model.InventoryI
 		inv.storage_location_id,
 		inv.is_returnable,
 		inv.return_location,
+		inv.return_datetime,
 		inv.max_weight,
 		inv.min_weight,
 		inv.max_height,
@@ -653,12 +717,13 @@ func UpdateInventory(user string, userID string, draftInventory model.InventoryI
 	LEFT JOIN community.storage_locations sl on sl.id = inv.storage_location_id 
 	LEFT JOIN community.profiles cp on cp.id  = inv.created_by
 	LEFT JOIN community.profiles up on up.id  = inv.updated_by
-	WHERE inv.id = $1
+	WHERE inv.id = $1;
 `
 
-	row := tx.QueryRow(sqlGetUpdatedInventory, updatedInventoryID)
+	row := tx.QueryRow(sqlGetUpdatedInventory, draftInventory.ID)
 
 	updatedInventory := model.Inventory{}
+
 	err = row.Scan(
 		&updatedInventory.ID,
 		&updatedInventory.Name,
@@ -673,6 +738,7 @@ func UpdateInventory(user string, userID string, draftInventory model.InventoryI
 		&updatedInventory.StorageLocationID,
 		&updatedInventory.IsReturnable,
 		&updatedInventory.ReturnLocation,
+		&updatedInventory.ReturnDateTime,
 		&updatedInventory.MaxWeight,
 		&updatedInventory.MinWeight,
 		&updatedInventory.MaxHeight,
@@ -684,6 +750,7 @@ func UpdateInventory(user string, userID string, draftInventory model.InventoryI
 		&updatedInventory.UpdatedBy,
 		&updatedInventory.UpdaterName,
 	)
+
 	if err != nil {
 		tx.Rollback()
 		return nil, err

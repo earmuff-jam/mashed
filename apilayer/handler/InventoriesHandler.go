@@ -79,7 +79,7 @@ func GetInventoryByID(rw http.ResponseWriter, r *http.Request, user string) {
 
 	resp, err := db.RetrieveSelectedInv(user, userID, invID)
 	if err != nil {
-		log.Printf("Unable to retrieve all existing inventories. error: +%v", err)
+		log.Printf("Unable to retrieve inventory with selected id. error: +%v", err)
 		rw.WriteHeader(http.StatusBadRequest)
 		json.NewEncoder(rw).Encode(err)
 		return
@@ -265,7 +265,7 @@ func UpdateSelectedInventory(rw http.ResponseWriter, r *http.Request, user strin
 		return
 	}
 
-	var inventory model.InventoryItemToUpdate
+	var inventory model.Inventory
 	if err := json.NewDecoder(r.Body).Decode(&inventory); err != nil {
 		log.Printf("Error decoding data. error: %+v", err)
 		rw.WriteHeader(http.StatusBadRequest)
